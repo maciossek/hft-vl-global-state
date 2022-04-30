@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+
+  <title>HFT IPR Global State Management</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-background-image="https://media.giphy.com/media/QaMhVZVwOvDiw/giphy.gif">
+        <h1 class="title">IPR</h1>
+        <h3 class="title">Global State Management</h3>
+      </section>
+
+      <!-- Redux -->
+      <section>
+        <section data-auto-animate data-background-size="cover"
+          data-background-image="https://d33wubrfki0l68.cloudfront.net/73bb62ebc338fcd64ee95bde18684ffe3b3bb379/dac4f/assets/images/one-way-data-flow-04fe46332c1ccb3497ecb04b94e55b97.png">
+          <h3>Redux</h3>
+        </section>
+        <section data-auto-animate>
+          <h3>Redux</h3>
+          <p>Redux is a pattern and library for managing and updating application state, using events called "actions".
+            It serves as a centralized store for state that needs to be used across your entire application, with rules
+            ensuring that the state can only be updated in a predictable fashion.
+          </p>
+        </section>
+        <section data-auto-animate>
+          <h3>Wann kann Redux Sinn ergeben?</h3>
+          <ul>
+            <li>Große Teile von App state die an vielen Stellen gebraucht werden</li>
+            <li>App state wird häufig geändert</li>
+            <li>Die Logik um State zu updaten ist komplex</li>
+            <li>Große Codebase bzw. großes Projekt an dem viele mitarbeiten</li>
+          </ul>
+        </section>
+        <section data-auto-animate>
+          <h3>Alternativen</h3>
+          <ul>
+            <li>React useContext()</li>
+            <li><a href="https://recoiljs.org/">Recoil</a></li>
+            <li><a href="https://github.com/pmndrs/zustand">Zustand</a></li>
+            <li><a href="https://jotai.org/">Jotai</a></li>
+            <li><a href="https://mobx.js.org/README.html">MobX</a></li>
+            <li><a href="https://overmindjs.org/">Overmind</a></li>
+          </ul>
+        </section>
+        <section data-auto-animate>
+          <h3>State updates</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            function Counter() {
+              // State: a counter value
+              const [counter, setCounter] = useState(0)
+            
+              // Action: code that causes an update to the state when something happens
+              const increment = () => {
+                setCounter(prevCounter => prevCounter + 1)
+              }
+            
+              // View: the UI definition
+              return (
+                <div>
+                  Value: {counter} <button onClick={increment}>Increment</button>
+                </div>
+              )
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>State immutability</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const obj = { a: 1, b: 2 }
+            // von außen immer noch das gleiche Objekt obwhol der Inhalt anders ist
+            obj.b = 3
+
+            const arr = ['a', 'b']
+            // das gleiche gilt für das ändern von Arrays
+            arr.push('c')
+            arr[1] = 'd'
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>State immutability</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const obj = {
+              a: {
+                // Um sicher zu updaten muss alles einzeln kopiert werden
+                c: 3
+              },
+              b: 2
+            }
+            
+            const obj2 = {
+              // copy obj
+              ...obj,
+              // overwrite a
+              a: {
+                // copy obj.a
+                ...obj.a,
+                // overwrite c
+                c: 42
+              }
+            }
+            
+            const arr = ['a', 'b']
+            // Erstelle eine Kopie des arrays und füge "c" hinzu
+            const arr2 = arr.concat('c')
+            
+            // oder wir erstellen eine copie des arrays
+            const arr3 = arr.slice()
+            // und fügen "c" hinzu
+            arr3.push('c')
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>State immutability</h3>
+          <blockquote>Redux expects that all state updates are done immutably.</blockquote>
+        </section>
+        <section data-auto-animate>
+          <h3>Redux Actions</h3>
+          <p>Eine Aktion ist ein einfaches JavaScript-Objekt, das ein Typfeld hat. Man kann sich eine Aktion als ein
+            Ereignis vorstellen, das etwas beschreibt, das in der Anwendung passiert ist.</p>
+        </section>
+        <section data-auto-animate>
+          <h3>Redux Actions</h3>
+          <p>Eine Aktion ist ein einfaches JavaScript-Objekt, das ein Typfeld hat. Man kann sich eine Aktion als ein
+            Ereignis vorstellen, das etwas beschreibt, das in der Anwendung passiert ist.</p>
+        </section>
+        <section data-auto-animate>
+          <h3>Redux Actions</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const addTodoAction = {
+              type: 'todos/todoAdded',
+              payload: 'Buy milk'
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>Redux Actions Creators</h3>
+          <small>Damit wir nicht immer die Action neu schreiben müssen</small>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const addTodo = text => {
+              return {
+                type: 'todos/todoAdded',
+                payload: text
+              }
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>Reducer</h3>
+          <p>Ein Rreducer ist eine Funktion, die den aktuellen Zustand und ein Aktionsobjekt empfängt, entscheidet,
+            wie der Zustand gegebenenfalls zu aktualisieren ist, und den neuen Zustand zurückgibt: (state, action) =>
+            newState. Man kann sich einen Reducer als einen Event Listener vorstellen, der Events auf der
+            Grundlage des empfangenen Action (Event) verarbeitet.
+          </p>
+        </section>
+        <section data-auto-animate>
+          <h3>Reducer</h3>
+          <ul>
+            <li>
+              Neuer state soll nur auf Grund von state und action Argumenten erstellt werden
+            </li>
+            <li>Der State darf nicht verändert werden. Updates müssen immutable sein.</li>
+            <li>Keine asynchrone Logik, kein Zufallsverhalten bzw. keinerlei "Side-effects"</li>
+          </ul>
+        </section>
+        <section data-auto-animate>
+          <h3>Reducer</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const initialState = { value: 0 }
+
+            function counterReducer(state = initialState, action) {
+              // Check to see if the reducer cares about this action
+              if (action.type === 'counter/increment') {
+                // If so, make a copy of `state`
+                return {
+                  ...state,
+                  // and update the copy with the new value
+                  value: state.value + 1
+                }
+              }
+              // otherwise return the existing state unchanged
+              return state
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>Store</h3>
+          <p>Der aktuelle Redux state ist ein JSON Objekt das meistens als store bezeichnet wird.</p>
+        </section>
+        <section data-auto-animate>
+          <h3>Store</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { configureStore } from '@reduxjs/toolkit'
+
+            const store = configureStore({ reducer: counterReducer })
+
+            console.log(store.getState()) // getState gibt uns den aktuellen State zurück
+            // {value: 0}
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>Dispatch</h3>
+          <p>Der Redux Store hat eine methode names dispatch. Die einzige Möglichkeit den State zu updaten ist mittels
+            store.dispatch(action)</p>
+        </section>
+        <section data-auto-animate>
+          <h3>Dispatch</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            store.dispatch({ type: 'counter/increment' }) // ähnlich wie ein event zu feuern
+
+            console.log(store.getState())
+            // {value: 1}
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>Selectoren</h3>
+          <p>Mit Selectoren können spezifische informatinen aus dem Store extrahiert werden. Das ergibt Sinn wenn häufig
+            der gleiche Wert an unterschiedlichen Stellen extrahiert werden muss.</p>
+        </section>
+        <section data-auto-animate>
+          <h3>Selektoren</h3>
+          <pre><code class="js" data-trim data-noescape data-line-numbers><script type="text/template">
+            const selectCounterValue = state => state.value
+
+            const currentValue = selectCounterValue(store.getState())
+            console.log(currentValue)
+            // 2
+          </script></code></pre>
+        </section>
+        <section data-auto-animate data-background-size="contain"
+          data-background-image="https://d33wubrfki0l68.cloudfront.net/01cc198232551a7e180f4e9e327b5ab22d9d14e7/b33f4/assets/images/reduxdataflowdiagram-49fa8c3968371d9ef6f2a1486bd40a26.gif">
+        </section>
+      </section>
+
+      <!-- Global State User Authentication -->
+      <section>
+        <section data-auto-animate data-background-size="cover"
+          data-background-image="https://media.giphy.com/media/ZPJ3KsxzPTeycrYIZk/giphy.gif">
+          <h3 class="title">Global State & Authentication</h3>
+          <small class="white">npm i redux react-redux @reduxjs/toolkit</small>
+        </section>
+        <section data-auto-animate>
+          <h3>redux.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { configureStore } from "@reduxjs/toolkit";
+            import userReducer from "../user/userReducer";
+            
+            const rootReducer = {
+              user: userReducer,
+            };
+            
+            const store = configureStore({ devTools: true, reducer: rootReducer });
+            
+            export default store;
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>userReducer.spec.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import userReducer from "../userReducer";
+
+            describe("user reducer", () => {
+              it("Should return the initial state", async () => {
+                const expectedState = {
+                  isAuthenticated: false,
+                  user: undefined,
+                };
+
+                expect(userReducer(undefined, {})).toEqual(expectedState);
+              });
+            });
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>userReducer.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { createSlice } from "@reduxjs/toolkit";
+
+            const initialState = {
+              isAuthenticated: false,
+              user: undefined,
+            };
+
+            const userSlice = createSlice({
+              name: "user",
+              initialState,
+              reducers: {},
+            });
+
+            export default userSlice.reducer;
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>App.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import "./App.less";
+            import { ThemeProvider } from "@emotion/react";
+            import defaultTheme from "./themes/default";
+            import RootRoutes from "./routes/root.routes";
+            import { Provider } from "react-redux";
+            import store from "./config/redux";
+            
+            export default function App() {
+              return (
+                <ThemeProvider theme={defaultTheme}>
+                  <Provider store={store}>
+                    <RootRoutes />
+                  </Provider>
+                </ThemeProvider>
+              );
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>testUtils.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            /* istanbul ignore file */
+            import { ThemeProvider } from "@emotion/react";
+            import React from "react";
+            import { BrowserRouter } from "react-router-dom";
+            import defaultTheme from "./themes/default";
+            import { Provider } from "react-redux";
+            import store from "./config/redux";
+            
+            export const AllProviders = ({ children }) => (
+              <ThemeProvider theme={defaultTheme}>
+                <Provider store={store}>
+                  <BrowserRouter>{children}</BrowserRouter>
+                </Provider>
+              </ThemeProvider>
+            );
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>RequireAuth.spec.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { render, screen } from "@testing-library/react";
+            import RequireAuth from "../RequireAuth";
+            import { AllProviders } from "../../../testUtils";
+            import { useSelector } from "react-redux";
+
+            jest
+              .mock("react-router-dom", () => ({
+                ...jest.requireActual("react-router-dom"),
+                Navigate: () => <p>navigate</p>,
+              }))
+              .mock("react-redux", () => ({
+                ...jest.requireActual("react-redux"),
+                useSelector: jest.fn(),
+              }));
+
+            describe("RequireAuth", () => {
+              it("Should send us to login if we are not logged in", async () => {
+                useSelector.mockImplementation(() => ({
+                  isAuthenticated: false,
+                }));
+
+                render(
+                  <AllProviders>
+                    <RequireAuth />
+                  </AllProviders>
+                );
+                const headline = await screen.findByText(/navigate/i);
+                expect(headline).toBeInTheDocument();
+              });
+
+              it("Should let us through if we are logged in", async () => {
+                useSelector.mockImplementation(() => ({
+                  isAuthenticated: true,
+                }));
+
+                render(
+                  <AllProviders>
+                    <RequireAuth>
+                      <p>crap stories</p>
+                    </RequireAuth>
+                  </AllProviders>
+                );
+                const headline = await screen.findByText(/Crap stories/i);
+                expect(headline).toBeInTheDocument();
+              });
+            });
+
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>RequireAuth.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { Navigate, useLocation } from "react-router-dom";
+            import { useSelector } from "react-redux";
+
+            export default function ProtectedRoute({ children }) {
+              const user = useSelector((state) => state.user);
+
+              const location = useLocation();
+
+              const logout = async () => {
+                // TODO
+                localStorage.clear("accessToken");
+              };
+
+              if (user.isAuthenticated) {
+                return children;
+              } else {
+                logout();
+              }
+
+              return <Navigate to="/public/login" state={{ from: location }} />;
+            }
+          </script></code></pre>
+        </section>
+      </section>
+
+      <!-- User Reducer Actions -->
+      <section>
+        <section data-auto-animate data-background-size="cover"
+          data-background-image="https://media.giphy.com/media/xT5LMWTGOnDxqLUZXi/giphy.gif">
+          <h3 class="title">User Reducer Actions</h3>
+        </section>
+        <section data-auto-animate>
+          <h3>userReducer.spec.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            it("should reset the state", async () => {
+              const changedState = {
+                isAuthenticated: true,
+                user: { email: "lel@lol@.hehe" },
+              };
+          
+              expect(userReducer(changedState, resetUser())).toEqual(initialState);
+            });
+          
+            it("should update a user", async () => {
+              const expectedState = {
+                isAuthenticated: true,
+                user: { email: "lel@lol@.heh" },
+              };
+          
+              expect(
+                userReducer(initialState, updateUser({ email: "lel@lol@.heh" }))
+              ).toEqual(expectedState);
+            });
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>userReducer.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            const userSlice = createSlice({
+              name: "user",
+              initialState,
+              reducers: {
+                updateUser: (state, action) => {
+                  if (action.payload) {
+                    state.user = action.payload;
+                    state.isAuthenticated = true;
+                  }
+                },
+                resetUser: (state, action) => {
+                  state.user = undefined;
+                  state.isAuthenticated = false;
+                },
+              },
+            });
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>userReducer.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            const userSlice = createSlice({
+              name: "user",
+              initialState,
+              reducers: {
+                updateUser: (state, action) => {
+                  if (action.payload) {
+                    state.user = action.payload;
+                    state.isAuthenticated = true;
+                  }
+                },
+                resetUser: (state, action) => {
+                  state.user = undefined;
+                  state.isAuthenticated = false;
+                },
+              },
+            });
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>axios.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            /* istanbul ignore file */
+            import env from "./env";
+            import axios from "axios";
+            import store from "./redux";
+            import { resetUser } from "../user/userReducer";
+
+            const instance = axios.create({
+              baseURL: env.API_ENDPOINT,
+            });
+
+            instance.interceptors.request.use(
+              (config) => {
+                config.headers = {
+                  ...config.headers,
+                  ...(store.getState().user.user && {
+                    Authorization: `Bearer ${store.getState().user.user.accessToken}`,
+                  }),
+                };
+                return config;
+              },
+              (error) => {
+                // Do something with request error
+                return Promise.reject(error);
+              }
+            );
+
+            instance.interceptors.response.use(
+              (response) => {
+                // Any status code that lie within the range of 2xx cause this function to trigger
+                // Do something with response data
+                return response;
+              },
+              (error) => {
+                // Any status codes that falls outside the range of 2xx cause this function to trigger
+                // Do something with response error
+                store.dispatch(resetUser());
+                return Promise.reject(error);
+              }
+            );
+
+            export default instance;
+
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>LoginView.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers="5,6, 9,25,29"><script type="text/template">
+            import { useState } from "react";
+            import { Alert, Button, Form, Input, message } from "antd";
+            import auth0 from "../../config/auth0";
+            import { useLocation, useNavigate } from "react-router-dom";
+            import { useDispatch } from "react-redux";
+            import { updateUser, resetUser } from "./../../user/userReducer";
+
+            export default function LoginView() {
+              const dispatch = useDispatch();
+              const [errorMessage, setErrorMessage] = useState("");
+              const location = useLocation();
+              const locationState = location.state;
+              const navigate = useNavigate();
+
+              const handleSubmit = (values) => {
+                auth0.client.login(
+                  {
+                    realm: "Username-Password-Authentication",
+                    username: values.username,
+                    password: values.password,
+                  },
+                  (err, authResult) => {
+                    if (err) {
+                      setErrorMessage(`Login failed: ${err.description}`);
+                      dispatch(resetUser());
+                      return;
+                    }
+                    message.success("Login successful");
+                    dispatch(updateUser({ accessToken: authResult.accessToken }));
+
+                    if (locationState) {
+                      navigate(locationState.from);
+                    } else {
+                      navigate("/");
+                    }
+                  }
+                );
+              };
+
+              return (
+                <>
+                  {errorMessage ? (
+                    <div style={{ marginBottom: "24px" }}>
+                      <Alert message={errorMessage} type="error" showIcon />
+                    </div>
+                  ) : null}
+                  <Form
+                    name="basic"
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 10 }}
+                    initialValues={{ remember: true }}
+                    autoComplete="off"
+                    onFinish={handleSubmit}
+                  >
+                    <Form.Item
+                      label="Username"
+                      name="username"
+                      rules={[{ required: true, message: "Please input your username!" }]}
+                    >
+                      <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Password"
+                      name="password"
+                      rules={[{ required: true, message: "Please input your password!" }]}
+                    >
+                      <Input.Password />
+                    </Form.Item>
+
+                    <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+                      <Button type="primary" htmlType="submit">
+                        Login
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </>
+              );
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>RequireAuth.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers="5,6, 9,25,29"><script type="text/template">
+            import { useSelector } from "react-redux";
+            import { Navigate, useLocation } from "react-router-dom";
+
+            export default function RequireAuth({ children }) {
+              const user = useSelector((state) => state.user);
+
+              const location = useLocation();
+
+              if (user.isAuthenticated) {
+                return children;
+              }
+
+              return <Navigate to="/public/login" state={{ from: location }} />;
+            }
+          </script></code></pre>
+        </section>
+      </section>
+
+      <!-- Redux Persist -->
+      <section>
+        <section data-auto-animate data-background-size="cover"
+          data-background-image="https://media.giphy.com/media/ZFuwwNQkNnI7Af9Lae/giphy.gif">
+          <h3 class="title">Redux Persist</h3>
+        </section>
+        <section data-auto-animate>
+          <h3>App.spec.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { render, screen } from "@testing-library/react";
+            import App from "../App";
+
+            jest.mock("redux-persist/integration/react", () => ({
+              PersistGate: (props) => props.children,
+            }));
+            jest.mock("redux-persist", () => ({
+              ...jest.requireActual("redux-persist"),
+              persistStore: jest.fn(),
+            }));
+
+            describe("App", () => {
+              it("should render a headline", () => {
+                render(<App />);
+                const el = screen.getByText(/Crap Stories/i);
+                expect(el).toBeInTheDocument();
+              });
+            });
+
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>App.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import "./App.less";
+            import { ThemeProvider } from "@emotion/react";
+            import defaultTheme from "./themes/default";
+            import RootRoutes from "./routes/root.routes";
+            import { Provider } from "react-redux";
+            import store from "./config/redux";
+            import { PersistGate } from "redux-persist/integration/react";
+            import { persistStore } from "redux-persist";
+
+            const persistor = persistStore(store);
+
+            export default function App() {
+              return (
+                <ThemeProvider theme={defaultTheme}>
+                  <Provider store={store}>
+                    <PersistGate loading={null} persistor={persistor}>
+                      <RootRoutes />
+                    </PersistGate>
+                  </Provider>
+                </ThemeProvider>
+              );
+            }
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h3>redux.js</h3>
+          <pre><code class="jsx" data-trim data-noescape data-line-numbers><script type="text/template">
+            import { configureStore } from "@reduxjs/toolkit";
+            import storage from "redux-persist/lib/storage";
+            import { combineReducers } from "redux";
+            import { persistReducer } from "redux-persist";
+            import userReducer from "../user/userReducer";
+
+            const reducers = combineReducers({
+              user: userReducer,
+            });
+
+            const persistConfig = {
+              key: "root",
+              storage,
+            };
+
+            const persistedReducer = persistReducer(persistConfig, reducers);
+
+            const store = configureStore({ devTools: true, reducer: persistedReducer });
+
+            export default store;
+          </script></code></pre>
+        </section>
+
+      </section>
+
+      <section>
+        <h3>Links</h3>
+        <ul>
+          <li>
+            <a href="https://github.com/maciossek/crap-stories-react/tree/feature/global-state">Frontend Repo</a>
+          </li>
+          <li>
+            <a href="https://redux.js.org/">Redux</a>
+          </li>
+          <li>
+            <a href="https://github.com/rt2zz/redux-persist">Redux Persist</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</body>
+
+</html>
